@@ -69,7 +69,6 @@ end
 
 function WGM:HandleTradeSkillFrame()
     local localised_name, current_skill_level, max_level = GetTradeSkillLine()
-    print(GetTradeSkillLine())
     if GetNumTradeSkills() == 0 == false then
         tradeSkills[localised_name] = {}
         local exportedSkill = "[" .. localised_name..","..current_skill_level..","..max_level.."@";
@@ -79,7 +78,6 @@ function WGM:HandleTradeSkillFrame()
                 exportedSkill = exportedSkill .. GetTradeSkillItemLink(i) .. '#'
             end
         end
-        print(exportedSkill)
         exportedSkill = exportedSkill .. "]"
         tradeSkills[localised_name] = exportedSkill
     end
