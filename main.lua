@@ -1,38 +1,58 @@
 WGM = LibStub("AceAddon-3.0"):NewAddon("WGM", "AceConsole-3.0", "AceEvent-3.0")
 
-local defaults = {char = {deposits = {}, history = {}}}
+local tradeSkills = {}
 
 function WGM:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("WGMDb", defaults)
-
+    WGM:RegisterEvent('TRADE_SKILL_SHOW', 'HandleTradeSkillFrame')
+    WGM:RegisterEvent('TRADE_SKILL_UPDATE', 'HandleTradeSkillFrame')
     WGM:RegisterChatCommand('wgm', 'HandleChatCommand');
 end
 
 function WGM:HandleChatCommand(input)
 
-    -- local slotId, textureName = GetInventorySlotInfo("HEADSLOT")
-    -- print(slotId)
-    -- local alertStatus = GetInventoryAlertStatus(slotId);
-    -- print(alertStatus);
-
-    -- local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
-    -- local a, b, c, d, e, f, itemType = GetItemInfo(mainHandLink)
-    -- print(a);
-    -- print(b);
-    -- print(c);
-    -- DEFAULT_CHAT_FRAME:AddMessage(itemType)
-
     local stuffExtracted = WGM:ExtractStuff();
-    local weaponEnch = GetWeaponEnchantInfo();
-    print(weaponEnch);
+    local exportString =
+        '[' .. UnitName('player') .. ',' .. UnitLevel('player') .. ',' ..
+            UnitRace('player') .. ',' .. UnitSex('player') .. ',' ..
+            UnitClass('player') .. ',' .. GetLocale() .. '];'
 
-    local bags = WGM:GetBags()
-    local bagItems = WGM:GetBagItems()
+    exportString = exportString .. WGM:ExportStuff() .. WGM:ExportTalents() ..
+                       WGM:ExportTradeSkill()
 
-    local exportString = '['..UnitName('player')..','..GetLocale()..'];'
+    WGM:DisplayExportString(exportString)
+end
 
-    exportString = exportString .. '['
+function WGM:ExportTradeSkill()
 
+    local exportString = "["
+    for key, value in pairs(tradeSkills) do
+        exportString = exportString .. value .. '*'
+    end
+    exportString = exportString .. "];"
+    return exportString
+end
+
+function WGM:ExportTalents()
+    local exportString = "[";
+    for i = 0, GetNumTalentTabs(), 1 do
+        for j = 0, GetNumTalents(i), 1 do
+            local nameTalent, icon, tier, column, currRank, maxRank =
+                GetTalentInfo(i, j)
+            if nameTalent == nil == false and currRank > 0 == true then
+                exportString = exportString .. '[' .. i .. ',' .. tier .. ',' ..
+                                   column .. ',' .. currRank .. ',' .. maxRank ..
+                                   ']#'
+            end
+        end
+    end
+    exportString = exportString .. "];"
+    return exportString
+end
+
+function WGM:ExportStuff()
+    local stuffExtracted = WGM:ExtractStuff();
+    local exportString = "[";
     for i = 1, #stuffExtracted do
         if i > 1 then exportString = exportString .. '#' end
 
@@ -43,68 +63,49 @@ function WGM:HandleChatCommand(input)
         end
     end
 
-    exportString = exportString .. '];'
+    exportString = exportString .. "];"
+    return exportString;
+end
 
-    WGM:DisplayExportString(exportString)
+function WGM:HandleTradeSkillFrame()
+    local localised_name, current_skill_level, max_level = GetTradeSkillLine()
+    print(GetTradeSkillLine())
+    if GetNumTradeSkills() == 0 == false then
+        tradeSkills[localised_name] = {}
+        local exportedSkill = "[" .. localised_name..","..current_skill_level..","..max_level.."@";
+        local numSkills = GetNumTradeSkills()
+        for i = 0, numSkills, 1 do
+            if GetTradeSkillItemLink(i) == nil == false then
+                exportedSkill = exportedSkill .. GetTradeSkillItemLink(i) .. '#'
+            end
+        end
+        print(exportedSkill)
+        exportedSkill = exportedSkill .. "]"
+        tradeSkills[localised_name] = exportedSkill
+    end
+    print('Scan done for ' .. localised_name)
 end
 
 function WGM:ExtractStuff()
-    local slotNames = { "HeadSlot", "NeckSlot", "ShoulderSlot", "ShirtSlot", "ChestSlot", 
-                        "WaistSlot", "LegsSlot", "FeetSlot", "WristSlot", "HandsSlot",
-                        "Finger0Slot", "Finger1Slot", "Trinket0Slot", "Trinket1Slot",
-                        "BackSlot", "MainHandSlot", "SecondaryHandSlot" }
-    local stuffItems = { };
+    local slotNames = {
+        "HeadSlot", "NeckSlot", "ShoulderSlot", "ShirtSlot", "ChestSlot",
+        "WaistSlot", "LegsSlot", "FeetSlot", "WristSlot", "HandsSlot",
+        "Finger0Slot", "Finger1Slot", "Trinket0Slot", "Trinket1Slot",
+        "BackSlot", "MainHandSlot", "SecondaryHandSlot"
+    }
+    local stuffItems = {};
 
     for slotCount = 1, 17 do
         local itemLink, soltId = GetInventoryItemLink("player",
                                                       GetInventorySlotInfo(
                                                           slotNames[slotCount]))
         stuffItems[#stuffItems + 1] = {
-          slotName = slotNames[slotCount],
-          link = itemLink
+            slotName = slotNames[slotCount],
+            link = itemLink
         }
-    end 
+    end
 
     return stuffItems;
-end
-
-function WGM:GetBags()
-    local bags = {}
-
-    for container = -1, 12 do
-        bags[#bags + 1] = {
-            container = container,
-            bagName = GetBagName(container)
-        }
-    end
-
-    return bags;
-end
-
-function WGM:GetBagItems()
-    local bagItems = {}
-
-    for container = -1, 12 do
-        local numSlots = GetContainerNumSlots(container)
-
-        for slot = 1, numSlots do
-            local texture, count, locked, quality, readable, lootable, link,
-                  isFiltered, hasNoValue, itemID =
-                GetContainerItemInfo(container, slot)
-
-            if itemID then
-                bagItems[#bagItems + 1] =
-                    {
-                        container = container,
-                        slot = slot,
-                        itemID = itemID,
-                        count = count
-                    }
-            end
-        end
-    end
-
-    return bagItems
 end
 
 function WGM:DisplayExportString(exportString)
