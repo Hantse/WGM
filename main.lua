@@ -1,6 +1,7 @@
 WGM = LibStub("AceAddon-3.0"):NewAddon("WGM", "AceConsole-3.0", "AceEvent-3.0")
 
 local tradeSkills = {}
+local LH = LibStub("LibHash-1.0")
 
 function WGM:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("WGMDb", defaults)
@@ -18,9 +19,24 @@ function WGM:HandleChatCommand(input)
             UnitClass('player') .. ',' .. GetLocale() .. '];'
 
     exportString = exportString .. WGM:ExportStuff() .. WGM:ExportTalents() ..
-                       WGM:ExportTradeSkill()
+                       WGM:ExportTradeSkill() .. WGM:ExportReputation()
 
     WGM:DisplayExportString(exportString)
+end
+
+function WGM:ExportReputation()
+    local exportString = "["
+    for i = 1, GetNumFactions() do
+        name, description, standingId, bottomValue, topValue, earnedValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild =
+            GetFactionInfo(i)
+        if isHeader == false then
+            exportString =
+                exportString .. '' .. name .. ',' .. topValue .. ',' ..
+                    earnedValue .. '#'
+        end
+    end
+    exportString = exportString .. "];"
+    return exportString
 end
 
 function WGM:ExportTradeSkill()
@@ -71,7 +87,8 @@ function WGM:HandleTradeSkillFrame()
     local localised_name, current_skill_level, max_level = GetTradeSkillLine()
     if GetNumTradeSkills() == 0 == false then
         tradeSkills[localised_name] = {}
-        local exportedSkill = "[" .. localised_name..","..current_skill_level..","..max_level.."@";
+        local exportedSkill = "[" .. localised_name .. "," ..
+                                  current_skill_level .. "," .. max_level .. "@";
         local numSkills = GetNumTradeSkills()
         for i = 0, numSkills, 1 do
             if GetTradeSkillItemLink(i) == nil == false then
@@ -89,11 +106,11 @@ function WGM:ExtractStuff()
         "HeadSlot", "NeckSlot", "ShoulderSlot", "ShirtSlot", "ChestSlot",
         "WaistSlot", "LegsSlot", "FeetSlot", "WristSlot", "HandsSlot",
         "Finger0Slot", "Finger1Slot", "Trinket0Slot", "Trinket1Slot",
-        "BackSlot", "MainHandSlot", "SecondaryHandSlot"
+        "BackSlot", "MainHandSlot", "SecondaryHandSlot", "RangedSlot"
     }
     local stuffItems = {};
 
-    for slotCount = 1, 17 do
+    for slotCount = 1, 18 do
         local itemLink, soltId = GetInventoryItemLink("player",
                                                       GetInventorySlotInfo(
                                                           slotNames[slotCount]))
@@ -109,11 +126,14 @@ end
 function WGM:DisplayExportString(exportString)
 
     local encoded = WGM:encode(exportString);
+    local guid = WGM:CreateGuid()
+    local sign = LH.hmac(LH.sha256, guid, encoded)
+    local cryptedData = WGM:encode(encoded .. guid .. sign)
 
     CgbFrame:Show();
     CgbFrameScroll:Show()
     CgbFrameScrollText:Show()
-    CgbFrameScrollText:SetText(encoded)
+    CgbFrameScrollText:SetText(cryptedData)
     CgbFrameScrollText:HighlightText()
 
     CgbFrameButton:SetScript("OnClick", function(self) CgbFrame:Hide(); end);
