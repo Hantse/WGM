@@ -1,10 +1,9 @@
-## Interface: 11302
+## Interface: 20501
 ## Title: WoW Guid Manager
 ## Notes: Constructs WoW Guid Manager
 ## Author: Hantse, Wolx
-## Version: 0.1
+## Version: 0.2
 ## SavedVariables: WGMDb
-
 libs\LibStub\LibStub.lua
 
 #@no-lib-strip@

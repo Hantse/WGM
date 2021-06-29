@@ -7,21 +7,94 @@ function WGM:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("WGMDb", defaults)
     WGM:RegisterEvent('TRADE_SKILL_SHOW', 'HandleTradeSkillFrame')
     WGM:RegisterEvent('TRADE_SKILL_UPDATE', 'HandleTradeSkillFrame')
-    WGM:RegisterChatCommand('wgm', 'HandleChatCommand');
+    WGM:RegisterChatCommand('wgm', 'HandleCharacterCommand')
+    WGM:RegisterChatCommand('wgm-test', 'HandleTestCommand')
+    WGM:RegisterChatCommand('wgm-bank', 'HandleBankCommand')
 end
 
-function WGM:HandleChatCommand(input)
+-- region handler
+function WGM:HandleCharacterCommand(input)
 
-    local stuffExtracted = WGM:ExtractStuff();
+    WGM:HandleEnchanting()
+
     local exportString =
         '[' .. UnitName('player') .. ',' .. UnitLevel('player') .. ',' ..
             UnitRace('player') .. ',' .. UnitSex('player') .. ',' ..
             UnitClass('player') .. ',' .. GetLocale() .. '];'
 
     exportString = exportString .. WGM:ExportStuff() .. WGM:ExportTalents() ..
-                       WGM:ExportTradeSkill() .. WGM:ExportReputation()
+                       WGM:ExportTradeSkill() .. WGM:ExportReputation() ..
+                       WGM:ExportAttunement()
 
     WGM:DisplayExportString(exportString)
+end
+
+function WGM:HandleBankCommand()
+    local bags = WGM:GetBags()
+    local bagItems = WGM:GetBagItems()
+
+    local exportString =
+        '[' .. UnitName('player') .. ',' .. GetMoney() .. ',' .. GetLocale() ..
+            '];'
+
+    exportString = exportString .. '['
+
+    for i = 1, #bags do
+        if i > 1 then exportString = exportString .. ',' end
+
+        exportString = exportString .. bags[i].container .. ','
+
+        if bags[i].bagName == nil == false then
+            exportString = exportString .. bags[i].bagName
+        end
+    end
+
+    exportString = exportString .. '];'
+
+    for i = 1, #bagItems do
+        exportString = exportString .. '[' .. bagItems[i].container .. ',' ..
+                           bagItems[i].slot .. ',' .. bagItems[i].itemID .. ',' ..
+                           bagItems[i].count .. '];'
+    end
+
+    WGM:DisplayExportStringWithoutCrypting(exportString)
+end
+-- end region handler
+
+-- region for character
+function WGM:ExportAttunement()
+    local exportString = "["
+
+    if C_QuestLog.IsQuestFlaggedCompleted(7848) then
+        exportString = exportString .. "MC#"
+    end
+
+    if C_QuestLog.IsQuestFlaggedCompleted(6502) then
+        exportString = exportString .. "Onyxia#"
+    end
+
+    if C_QuestLog.IsQuestFlaggedCompleted(7761) then
+        exportString = exportString .. "BWL#"
+    end
+
+    if C_QuestLog.IsQuestFlaggedCompleted(9837) then
+        exportString = exportString .. "Karazhan#"
+    end
+
+    if C_QuestLog.IsQuestFlaggedCompleted(13431) then
+        exportString = exportString .. "Serpentshrine Cavern#"
+    end
+
+    if C_QuestLog.IsQuestFlaggedCompleted(10888) then
+        exportString = exportString .. "Tempest Keep#"
+    end
+
+    if C_QuestLog.IsQuestFlaggedCompleted(10445) then
+        exportString = exportString .. "Hyjal#"
+    end
+
+    exportString = exportString .. "];"
+    return exportString
 end
 
 function WGM:ExportReputation()
@@ -32,7 +105,7 @@ function WGM:ExportReputation()
         if isHeader == false then
             exportString =
                 exportString .. '' .. name .. ',' .. topValue .. ',' ..
-                    earnedValue .. '#'
+                    earnedValue .. ',' .. standingId .. '#'
         end
     end
     exportString = exportString .. "];"
@@ -40,7 +113,6 @@ function WGM:ExportReputation()
 end
 
 function WGM:ExportTradeSkill()
-
     local exportString = "["
     for key, value in pairs(tradeSkills) do
         exportString = exportString .. value .. '*'
@@ -101,6 +173,23 @@ function WGM:HandleTradeSkillFrame()
     print('Scan done for ' .. localised_name)
 end
 
+function WGM:HandleEnchanting()
+    tradeSkills[GetCraftName()] = {}
+    local exportedSkill =
+        "[" .. GetCraftName() .. "," .. "300" .. "," .. "375" .. "@";
+
+    for i = 1, GetNumCrafts() do
+        if GetCraftItemLink(i) == nil == false then
+            exportedSkill = exportedSkill .. GetCraftItemLink(i) .. '#'
+        end
+    end
+
+    exportedSkill = exportedSkill .. "]"
+    tradeSkills[GetCraftName()] = exportedSkill
+
+    print('Scan done for ' .. GetCraftName())
+end
+
 function WGM:ExtractStuff()
     local slotNames = {
         "HeadSlot", "NeckSlot", "ShoulderSlot", "ShirtSlot", "ChestSlot",
@@ -122,21 +211,74 @@ function WGM:ExtractStuff()
 
     return stuffItems;
 end
+-- end region for character
 
+-- region for bank
+function WGM:GetBags()
+    local bags = {}
+    for container = -1, 12 do
+        bags[#bags + 1] = {
+            container = container,
+            bagName = GetBagName(container)
+        }
+    end
+    return bags;
+end
+
+function WGM:GetBagItems()
+    local bagItems = {}
+
+    for container = -1, 12 do
+        local numSlots = GetContainerNumSlots(container)
+
+        for slot = 1, numSlots do
+            local texture, count, locked, quality, readable, lootable, link,
+                  isFiltered, hasNoValue, itemID =
+                GetContainerItemInfo(container, slot)
+
+            if itemID then
+                bagItems[#bagItems + 1] = {
+                    container = container,
+                    slot = slot,
+                    itemID = itemID,
+                    count = count
+                }
+            end
+        end
+    end
+
+    return bagItems
+end
+-- end region for bank
+
+-- region utils
 function WGM:DisplayExportString(exportString)
 
-    local encoded = WGM:encode(exportString);
+    local encoded = WGM:Encode(exportString);
     local guid = WGM:CreateGuid()
     local sign = LH.hmac(LH.sha256, guid, encoded)
-    local cryptedData = WGM:encode(encoded .. guid .. sign)
+    local cryptedData = WGM:Encode(encoded .. guid .. sign)
 
-    CgbFrame:Show();
-    CgbFrameScroll:Show()
-    CgbFrameScrollText:Show()
-    CgbFrameScrollText:SetText(cryptedData)
-    CgbFrameScrollText:HighlightText()
+    WGMFrame:Show();
+    WGMFrameScroll:Show()
+    WGMFrameScrollText:Show()
+    WGMFrameScrollText:SetText(cryptedData)
+    WGMFrameScrollText:HighlightText()
 
-    CgbFrameButton:SetScript("OnClick", function(self) CgbFrame:Hide(); end);
+    WGMFrameButton:SetScript("OnClick", function(self) WGMFrame:Hide(); end);
+end
+
+function WGM:DisplayExportStringWithoutCrypting(exportString)
+
+    local encoded = WGM:Encode(exportString);
+
+    WGMFrame:Show();
+    WGMFrameScroll:Show()
+    WGMFrameScrollText:Show()
+    WGMFrameScrollText:SetText(encoded)
+    WGMFrameScrollText:HighlightText()
+
+    WGMFrameButton:SetScript("OnClick", function(self) WGMFrame:Hide(); end);
 end
 
 local extract = _G.bit32 and _G.bit32.extract
@@ -166,7 +308,7 @@ end
 
 local char, concat = string.char, table.concat
 
-function WGM:makeencoder(s62, s63, spad)
+function WGM:MakeEncoder(s62, s63, spad)
     local encoder = {}
     for b64code, char in pairs {
         [0] = 'A',
@@ -238,8 +380,8 @@ function WGM:makeencoder(s62, s63, spad)
     return encoder
 end
 
-function WGM:encode(str)
-    encoder = WGM:makeencoder()
+function WGM:Encode(str)
+    encoder = WGM:MakeEncoder()
     local t, k, n = {}, 1, #str
     local lastn = n % 3
     for i = 1, n - lastn, 3 do
@@ -272,3 +414,4 @@ function WGM:CreateGuid()
         return string.format('%x', v);
     end);
 end
+-- end region utils
