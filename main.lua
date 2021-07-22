@@ -1,38 +1,38 @@
-WGM = LibStub("AceAddon-3.0"):NewAddon("WGM", "AceConsole-3.0", "AceEvent-3.0")
+EPIC = LibStub("AceAddon-3.0"):NewAddon("EPIC", "AceConsole-3.0", "AceEvent-3.0")
 
 local tradeSkills = {}
 local LH = LibStub("LibHash-1.0")
 
-function WGM:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New("WGMDb", defaults)
-    WGM:RegisterEvent('TRADE_SKILL_SHOW', 'HandleTradeSkillFrame')
-    WGM:RegisterEvent('TRADE_SKILL_UPDATE', 'HandleTradeSkillFrame')
-    WGM:RegisterChatCommand('wgm', 'HandleCharacterCommand')
-    WGM:RegisterChatCommand('wgm-test', 'HandleTestCommand')
-    WGM:RegisterChatCommand('wgm-bank', 'HandleBankCommand')
+function EPIC:OnInitialize()
+    self.db = LibStub("AceDB-3.0"):New("EPICDb", defaults)
+    EPIC:RegisterEvent('TRADE_SKILL_SHOW', 'HandleTradeSkillFrame')
+    EPIC:RegisterEvent('TRADE_SKILL_UPDATE', 'HandleTradeSkillFrame')
+    EPIC:RegisterChatCommand('EPIC', 'HandleCharacterCommand')
+    EPIC:RegisterChatCommand('EPIC-test', 'HandleTestCommand')
+    EPIC:RegisterChatCommand('EPIC-bank', 'HandleBankCommand')
 end
 
 -- region handler
-function WGM:HandleCharacterCommand(input)
+function EPIC:HandleCharacterCommand(input)
     
-    print(WGM:GetAddons())
-    WGM:HandleEnchanting()
+    print(EPIC:GetAddons())
+    EPIC:HandleEnchanting()
 
     local exportString =
         '[' .. UnitName('player') .. ',' .. UnitLevel('player') .. ',' ..
             UnitRace('player') .. ',' .. UnitSex('player') .. ',' ..
             UnitClass('player') .. ',' .. GetLocale() .. '];'
 
-    exportString = exportString .. WGM:ExportStuff() .. WGM:ExportTalents() ..
-                       WGM:ExportTradeSkill() .. WGM:ExportReputation() ..
-                       WGM:ExportAttunement() .. WGM:ExtractCharacterStats() .. WGM:GetAddons()
+    exportString = exportString .. EPIC:ExportStuff() .. EPIC:ExportTalents() ..
+                       EPIC:ExportTradeSkill() .. EPIC:ExportReputation() ..
+                       EPIC:ExportAttunement() .. EPIC:ExtractCharacterStats() .. EPIC:GetAddons()
 
-    WGM:DisplayExportString(exportString)
+    EPIC:DisplayExportString(exportString)
 end
 
-function WGM:HandleBankCommand()
-    local bags = WGM:GetBags()
-    local bagItems = WGM:GetBagItems()
+function EPIC:HandleBankCommand()
+    local bags = EPIC:GetBags()
+    local bagItems = EPIC:GetBagItems()
 
     local exportString =
         '[' .. UnitName('player') .. ',' .. GetMoney() .. ',' .. GetLocale() ..
@@ -58,12 +58,12 @@ function WGM:HandleBankCommand()
                            bagItems[i].count .. '];'
     end
 
-    WGM:DisplayExportStringWithoutCrypting(exportString)
+    EPIC:DisplayExportStringWithoutCrypting(exportString)
 end
 -- end region handler
 
 -- region for character
-function WGM:ExportAttunement()
+function EPIC:ExportAttunement()
     local exportString = "["
 
     if C_QuestLog.IsQuestFlaggedCompleted(7848) then
@@ -98,7 +98,7 @@ function WGM:ExportAttunement()
     return exportString
 end
 
-function WGM:ExportReputation()
+function EPIC:ExportReputation()
     local exportString = "["
     for i = 1, GetNumFactions() do
         name, description, standingId, bottomValue, topValue, earnedValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild =
@@ -113,7 +113,7 @@ function WGM:ExportReputation()
     return exportString
 end
 
-function WGM:ExportTradeSkill()
+function EPIC:ExportTradeSkill()
     local exportString = "["
     for key, value in pairs(tradeSkills) do
         exportString = exportString .. value .. '*'
@@ -122,7 +122,7 @@ function WGM:ExportTradeSkill()
     return exportString
 end
 
-function WGM:ExportTalents()
+function EPIC:ExportTalents()
     local exportString = "[";
     for i = 0, GetNumTalentTabs(), 1 do
         for j = 0, GetNumTalents(i), 1 do
@@ -139,8 +139,8 @@ function WGM:ExportTalents()
     return exportString
 end
 
-function WGM:ExportStuff()
-    local stuffExtracted = WGM:ExtractStuff();
+function EPIC:ExportStuff()
+    local stuffExtracted = EPIC:ExtractStuff();
     local exportString = "[";
     for i = 1, #stuffExtracted do
         if i > 1 then exportString = exportString .. '#' end
@@ -156,7 +156,7 @@ function WGM:ExportStuff()
     return exportString;
 end
 
-function WGM:HandleTradeSkillFrame()
+function EPIC:HandleTradeSkillFrame()
     local localised_name, current_skill_level, max_level = GetTradeSkillLine()
     if GetNumTradeSkills() == 0 == false then
         tradeSkills[localised_name] = {}
@@ -174,7 +174,7 @@ function WGM:HandleTradeSkillFrame()
     print('Scan done for ' .. localised_name)
 end
 
-function WGM:HandleEnchanting()
+function EPIC:HandleEnchanting()
     tradeSkills[GetCraftName()] = {}
     local exportedSkill =
         "[" .. GetCraftName() .. "," .. "300" .. "," .. "375" .. "@";
@@ -191,7 +191,7 @@ function WGM:HandleEnchanting()
     print('Scan done for ' .. GetCraftName())
 end
 
-function WGM:ExtractStuff()
+function EPIC:ExtractStuff()
     local slotNames = {
         "HeadSlot", "NeckSlot", "ShoulderSlot", "ShirtSlot", "ChestSlot",
         "WaistSlot", "LegsSlot", "FeetSlot", "WristSlot", "HandsSlot",
@@ -213,7 +213,7 @@ function WGM:ExtractStuff()
     return stuffItems;
 end
 
-function WGM:ExtractCharacterStats()
+function EPIC:ExtractCharacterStats()
 
     baseStrength, statStrength, posBuffStrength, negBuffStrength = UnitStat(
                                                                        "player",
@@ -261,7 +261,7 @@ function WGM:ExtractCharacterStats()
     return exportString;
 end
 
-function WGM:GetAddons()
+function EPIC:GetAddons()
     local addons = '[';
     for index = 1, GetNumAddOns() do
         local name, title, notes, enabled, loadable, reason, security = GetAddOnInfo(index)
@@ -275,7 +275,7 @@ end
 -- end region for character
 
 -- region for bank
-function WGM:GetBags()
+function EPIC:GetBags()
     local bags = {}
     for container = -1, 12 do
         bags[#bags + 1] = {
@@ -286,7 +286,7 @@ function WGM:GetBags()
     return bags;
 end
 
-function WGM:GetBagItems()
+function EPIC:GetBagItems()
     local bagItems = {}
 
     for container = -1, 12 do
@@ -313,33 +313,33 @@ end
 -- end region for bank
 
 -- region utils
-function WGM:DisplayExportString(exportString)
+function EPIC:DisplayExportString(exportString)
 
-    local encoded = WGM:Encode(exportString);
-    local guid = WGM:CreateGuid()
+    local encoded = EPIC:Encode(exportString);
+    local guid = EPIC:CreateGuid()
     local sign = LH.hmac(LH.sha256, guid, encoded)
-    local cryptedData = WGM:Encode(encoded .. guid .. sign)
+    local cryptedData = EPIC:Encode(encoded .. guid .. sign)
 
-    WGMFrame:Show();
-    WGMFrameScroll:Show()
-    WGMFrameScrollText:Show()
-    WGMFrameScrollText:SetText(cryptedData)
-    WGMFrameScrollText:HighlightText()
+    EPICFrame:Show();
+    EPICFrameScroll:Show()
+    EPICFrameScrollText:Show()
+    EPICFrameScrollText:SetText(cryptedData)
+    EPICFrameScrollText:HighlightText()
 
-    WGMFrameButton:SetScript("OnClick", function(self) WGMFrame:Hide(); end);
+    EPICFrameButton:SetScript("OnClick", function(self) EPICFrame:Hide(); end);
 end
 
-function WGM:DisplayExportStringWithoutCrypting(exportString)
+function EPIC:DisplayExportStringWithoutCrypting(exportString)
 
-    local encoded = WGM:Encode(exportString);
+    local encoded = EPIC:Encode(exportString);
 
-    WGMFrame:Show();
-    WGMFrameScroll:Show()
-    WGMFrameScrollText:Show()
-    WGMFrameScrollText:SetText(encoded)
-    WGMFrameScrollText:HighlightText()
+    EPICFrame:Show();
+    EPICFrameScroll:Show()
+    EPICFrameScrollText:Show()
+    EPICFrameScrollText:SetText(encoded)
+    EPICFrameScrollText:HighlightText()
 
-    WGMFrameButton:SetScript("OnClick", function(self) WGMFrame:Hide(); end);
+    EPICFrameButton:SetScript("OnClick", function(self) EPICFrame:Hide(); end);
 end
 
 local extract = _G.bit32 and _G.bit32.extract
@@ -369,7 +369,7 @@ end
 
 local char, concat = string.char, table.concat
 
-function WGM:MakeEncoder(s62, s63, spad)
+function EPIC:MakeEncoder(s62, s63, spad)
     local encoder = {}
     for b64code, char in pairs {
         [0] = 'A',
@@ -441,8 +441,8 @@ function WGM:MakeEncoder(s62, s63, spad)
     return encoder
 end
 
-function WGM:Encode(str)
-    encoder = WGM:MakeEncoder()
+function EPIC:Encode(str)
+    encoder = EPIC:MakeEncoder()
     local t, k, n = {}, 1, #str
     local lastn = n % 3
     for i = 1, n - lastn, 3 do
@@ -466,7 +466,7 @@ function WGM:Encode(str)
     return concat(t)
 end
 
-function WGM:CreateGuid()
+function EPIC:CreateGuid()
     local random = math.random;
     local template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
 

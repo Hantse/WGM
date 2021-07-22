@@ -1,9 +1,9 @@
 ## Interface: 20501
-## Title: WoW Guid Manager
-## Notes: Constructs WoW Guid Manager
+## Title: EPIC Guid Manager
+## Notes: Constructs EPIC Guid Manager
 ## Author: Hantse, Wolx
 ## Version: 0.2
-## SavedVariables: WGMDb
+## SavedVariables: EPICDb
 libs\LibStub\LibStub.lua
 
 #@no-lib-strip@

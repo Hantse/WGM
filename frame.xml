@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-	<Frame name="WGMFrame" parent="UIParent" inherits="BackdropTemplate" movable="true" enableMouse="true" hidden="true">
+	<Frame name="EPICFrame" parent="UIParent" inherits="BackdropTemplate" movable="true" enableMouse="true" hidden="true">
 		<KeyValues>
 			<KeyValue key="backdropInfo" value="BACKDROP_GOLD_DIALOG_32_32" type="global" />
 			<KeyValue key="backdropBorderColor" value="LEGENDARY_ORANGE_COLOR" type="global" />
@@ -14,23 +14,23 @@
 			<Anchor point="CENTER" />
 		</Anchors>
 		<Frames>
-			<Button name="WGMFrameButton" text="Close" inherits="GameMenuButtonTemplate">
+			<Button name="EPICFrameButton" text="Close" inherits="GameMenuButtonTemplate">
 				<Anchors>
-					<Anchor point="BOTTOM" relativeTo="WGMFrame" relativePoint="BOTTOM">
+					<Anchor point="BOTTOM" relativeTo="EPICFrame" relativePoint="BOTTOM">
 						<Offset>
 							<AbsDimension x="0" y="20" />
 						</Offset>
 					</Anchor>
 				</Anchors>
 			</Button>
-			<ScrollFrame name="WGMFrameScroll" inherits="UIPanelScrollFrameTemplate" toplevel="true">
+			<ScrollFrame name="EPICFrameScroll" inherits="UIPanelScrollFrameTemplate" toplevel="true">
 				<Anchors>
 					<Anchor point="TOP">
 						<Offset>
 							<AbsDimension x="0" y="-30" />
 						</Offset>
 					</Anchor>
-					<Anchor point="BOTTOM" relativeTo="WGMFrameButton" relativePoint="BOTTOM">
+					<Anchor point="BOTTOM" relativeTo="EPICFrameButton" relativePoint="BOTTOM">
 						<Offset>
 							<AbsDimension x="10" y="30" />
 						</Offset>
@@ -42,7 +42,7 @@
 					</Anchor>
 				</Anchors>
 				<ScrollChild>
-					<EditBox name="WGMFrameScrollText" letters="99999" multiLine="true" autoFocus="true" enableMouse="true">
+					<EditBox name="EPICFrameScrollText" letters="99999" multiLine="true" autoFocus="true" enableMouse="true">
 						<Size>
 							<AbsDimension x="630" y="380" />
 						</Size>
