@@ -14,7 +14,8 @@ end
 
 -- region handler
 function WGM:HandleCharacterCommand(input)
-
+    
+    print(WGM:GetAddons())
     WGM:HandleEnchanting()
 
     local exportString =
@@ -24,7 +25,7 @@ function WGM:HandleCharacterCommand(input)
 
     exportString = exportString .. WGM:ExportStuff() .. WGM:ExportTalents() ..
                        WGM:ExportTradeSkill() .. WGM:ExportReputation() ..
-                       WGM:ExportAttunement()
+                       WGM:ExportAttunement() .. WGM:ExtractCharacterStats() .. WGM:GetAddons()
 
     WGM:DisplayExportString(exportString)
 end
@@ -210,6 +211,66 @@ function WGM:ExtractStuff()
     end
 
     return stuffItems;
+end
+
+function WGM:ExtractCharacterStats()
+
+    baseStrength, statStrength, posBuffStrength, negBuffStrength = UnitStat(
+                                                                       "player",
+                                                                       1);
+    baseAgility, statAgility, posBuffAgility, negBuffAgility = UnitStat(
+                                                                   "player", 2);
+    baseStamina, statStamina, posBuffStamina, negBuffStamina = UnitStat(
+                                                                   "player", 3);
+    baseIntellect, statIntellect, posBuffIntellect, negBuffIntellect = UnitStat(
+                                                                           "player",
+                                                                           4);
+    baseSpirit, statSpirit, posBuffSpirit, negBuffSpirit = UnitStat("player", 5);
+
+    local exportString = '[ArmorPenetration:' .. GetArmorPenetration() ..
+                             ',CritChance:' .. GetCritChance() ..
+                             ',DodgeChance:' .. GetDodgeChance() ..
+                             ',Expertise:' .. GetExpertise() .. ',ManaRegen:' ..
+                             GetManaRegen() .. ',ParryChance:' ..
+                             GetParryChance() .. ',PhysicalSpellDamage:' ..
+                             GetSpellBonusDamage(1) .. ',HolySpellDamage:' ..
+                             GetSpellBonusDamage(2) .. ',FireSpellDamage:' ..
+                             GetSpellBonusDamage(3) .. ',NatureSpellDamage:' ..
+                             GetSpellBonusDamage(4) .. ',FrostSpellDamage:' ..
+                             GetSpellBonusDamage(5) .. ',ShadowSpellDamage:' ..
+                             GetSpellBonusDamage(6) .. ',ArcaneSpellDamage:' ..
+                             GetSpellBonusDamage(7) .. ',PhysicalSpellCrit:' ..
+                             GetSpellBonusDamage(1) .. ',HolySpellCrit:' ..
+                             GetSpellBonusDamage(2) .. ',FireSpellCrit:' ..
+                             GetSpellBonusDamage(3) .. ',NatureSpellCrit:' ..
+                             GetSpellBonusDamage(4) .. ',FrostSpellCrit:' ..
+                             GetSpellBonusDamage(5) .. ',ShadowSpellCrit:' ..
+                             GetSpellBonusDamage(6) .. ',ArcaneSpellCrit:' ..
+                             GetSpellBonusDamage(7) .. ',RangerCrit:' ..
+                             GetRangedCritChance() .. ',Strength:' ..
+                             statStrength .. '#' .. posBuffStrength .. '#' ..
+                             negBuffStrength .. ',Agility:' .. statAgility ..
+                             '#' .. posBuffAgility .. '#' .. negBuffAgility ..
+                             ',Stamina:' .. statStamina .. '#' .. posBuffStamina ..
+                             '#' .. negBuffStamina .. ',Intellect:' ..
+                             statIntellect .. '#' .. posBuffIntellect .. '#' ..
+                             negBuffIntellect .. ',Spirit:' .. statSpirit .. '#' ..
+                             posBuffSpirit .. '#' .. negBuffSpirit ..
+                             ',BlockChance:' .. GetBlockChance() .. '];';
+
+    return exportString;
+end
+
+function WGM:GetAddons()
+    local addons = '[';
+    for index = 1, GetNumAddOns() do
+        local name, title, notes, enabled, loadable, reason, security = GetAddOnInfo(index)
+            if enabled == nil == false and enabled then
+                addons = addons .. name .. ',';
+            end
+    end
+    addons = addons .. '];';
+    return addons;
 end
 -- end region for character
 
