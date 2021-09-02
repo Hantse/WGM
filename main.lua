@@ -8,14 +8,17 @@ function EPIC:OnInitialize()
     EPIC:RegisterEvent('TRADE_SKILL_SHOW', 'HandleTradeSkillFrame')
     EPIC:RegisterEvent('TRADE_SKILL_UPDATE', 'HandleTradeSkillFrame')
     EPIC:RegisterChatCommand('EPIC', 'HandleCharacterCommand')
+    EPIC:RegisterChatCommand('epic', 'HandleCharacterCommand')
+    EPIC:RegisterChatCommand('mag-raid', 'HandleRaidExportCommand')
     EPIC:RegisterChatCommand('EPIC-test', 'HandleTestCommand')
+    EPIC:RegisterChatCommand('epic-test', 'HandleTestCommand')
     EPIC:RegisterChatCommand('EPIC-bank', 'HandleBankCommand')
+    EPIC:RegisterChatCommand('epic-bank', 'HandleBankCommand')
 end
 
 -- region handler
 function EPIC:HandleCharacterCommand(input)
     
-    print(EPIC:GetAddons())
     EPIC:HandleEnchanting()
 
     local exportString =
@@ -61,6 +64,21 @@ function EPIC:HandleBankCommand()
     EPIC:DisplayExportStringWithoutCrypting(exportString)
 end
 -- end region handler
+
+-- region raid
+function EPIC:HandleRaidExportCommand()
+    local exportString = ''
+    local raidMembers = ''
+
+    for i = 1, GetNumGroupMembers(), 1 do
+        local name, _, _, level, class, _, _, _, _, role = GetRaidRosterInfo(i)
+        raidMembers = raidMembers .. '#' .. name .. ',' .. level .. ',' .. class ..',' .. role
+    end
+
+    exportString = '[' .. raidMembers .. ']'
+    EPIC:DisplayExportGDKP(exportString)
+end
+-- end region
 
 -- region for character
 function EPIC:ExportAttunement()
@@ -171,7 +189,7 @@ function EPIC:HandleTradeSkillFrame()
         exportedSkill = exportedSkill .. "]"
         tradeSkills[localised_name] = exportedSkill
     end
-    print('Scan done for ' .. localised_name)
+    -- print('Scan done for ' .. localised_name)
 end
 
 function EPIC:HandleEnchanting()
@@ -215,17 +233,13 @@ end
 
 function EPIC:ExtractCharacterStats()
 
-    baseStrength, statStrength, posBuffStrength, negBuffStrength = UnitStat(
-                                                                       "player",
-                                                                       1);
-    baseAgility, statAgility, posBuffAgility, negBuffAgility = UnitStat(
-                                                                   "player", 2);
-    baseStamina, statStamina, posBuffStamina, negBuffStamina = UnitStat(
-                                                                   "player", 3);
-    baseIntellect, statIntellect, posBuffIntellect, negBuffIntellect = UnitStat(
-                                                                           "player",
-                                                                           4);
-    baseSpirit, statSpirit, posBuffSpirit, negBuffSpirit = UnitStat("player", 5);
+    local baseStrength, statStrength, posBuffStrength, negBuffStrength = UnitStat("player", 1);
+    local baseAgility, statAgility, posBuffAgility, negBuffAgility = UnitStat("player", 2);
+    local baseStamina, statStamina, posBuffStamina, negBuffStamina = UnitStat("player", 3);
+    local baseIntellect, statIntellect, posBuffIntellect, negBuffIntellect = UnitStat("player",4);
+    local baseSpirit, statSpirit, posBuffSpirit, negBuffSpirit = UnitStat("player", 5);
+    local baseDefense, armorDefense = UnitDefense("player");
+    local base, effectiveArmor, armor, posBuff, negBuff = UnitArmor("player");
 
     local exportString = '[ArmorPenetration:' .. GetArmorPenetration() ..
                              ',CritChance:' .. GetCritChance() ..
@@ -256,7 +270,8 @@ function EPIC:ExtractCharacterStats()
                              statIntellect .. '#' .. posBuffIntellect .. '#' ..
                              negBuffIntellect .. ',Spirit:' .. statSpirit .. '#' ..
                              posBuffSpirit .. '#' .. negBuffSpirit ..
-                             ',BlockChance:' .. GetBlockChance() .. '];';
+                             ',BlockChance:' .. GetBlockChance() .. ',Defense:'..baseDefense..
+                             ',ArmorDefense:'..armorDefense..'];';
 
     return exportString;
 end
