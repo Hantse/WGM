@@ -3,7 +3,7 @@
 ## Notes: Constructs EPIC Guid Manager
 ## Author: Hantse, Wolx
 ## Version: 0.2
-## SavedVariables: EPICDb
+## SavedVariables: EPICDb, LootHistory
 libs\LibStub\LibStub.lua
 
 #@no-lib-strip@

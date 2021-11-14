@@ -1,12 +1,16 @@
 EPIC = LibStub("AceAddon-3.0"):NewAddon("EPIC", "AceConsole-3.0", "AceEvent-3.0")
 
 local tradeSkills = {}
+local lootHistory = {}
 local LH = LibStub("LibHash-1.0")
 
 function EPIC:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("EPICDb", defaults)
+    lootHistory = LootHistory
     EPIC:RegisterEvent('TRADE_SKILL_SHOW', 'HandleTradeSkillFrame')
     EPIC:RegisterEvent('TRADE_SKILL_UPDATE', 'HandleTradeSkillFrame')
+    EPIC:RegisterEvent('LOOT_OPENED', 'HandleLootingHistory')
+
     EPIC:RegisterChatCommand('EPIC', 'HandleCharacterCommand')
     EPIC:RegisterChatCommand('epic', 'HandleCharacterCommand')
     EPIC:RegisterChatCommand('mag-raid', 'HandleRaidExportCommand')
@@ -14,6 +18,8 @@ function EPIC:OnInitialize()
     EPIC:RegisterChatCommand('epic-test', 'HandleTestCommand')
     EPIC:RegisterChatCommand('EPIC-bank', 'HandleBankCommand')
     EPIC:RegisterChatCommand('epic-bank', 'HandleBankCommand')
+    EPIC:RegisterChatCommand('epicrl', 'HandleResetLootCommand')
+    EPIC:RegisterChatCommand('epicel', 'HandleExportLootCommand')
 end
 
 -- region handler
@@ -63,6 +69,12 @@ function EPIC:HandleBankCommand()
 
     EPIC:DisplayExportStringWithoutCrypting(exportString)
 end
+
+function EPIC:HandleResetLootCommand()
+    LootHistory = {}
+    lootHistory = {}
+    print('Loot history reset.')
+end
 -- end region handler
 
 -- region raid
@@ -76,7 +88,41 @@ function EPIC:HandleRaidExportCommand()
     end
 
     exportString = '[' .. raidMembers .. ']'
-    EPIC:DisplayExportGDKP(exportString)
+    EPIC:DisplayExportString(exportString)
+end
+
+function EPIC:HandleExportLootCommand()
+    local exportString = ''
+    for key, value in pairs(lootHistory) do
+        exportString = exportString .. key .. '@' .. value .. '*'
+    end
+    EPIC:DisplayExportStringWithoutCrypting(exportString)
+end
+-- end region
+
+-- region raid history
+function EPIC:HandleLootingHistory()
+
+    local numOfLoots = GetNumLootItems()
+    local ennemyName = UnitName("target")
+    local uniqueId = UnitGUID("target") 
+    local lootTableKey = ennemyName .. '@' .. uniqueId
+
+    if lootHistory[lootTableKey] == nil == true then 
+        local lootChain = '[' .. date("%m/%d/%y %H:%M:%S") .. '#'
+        for i = 0, numOfLoots do
+            local itemLoot = GetLootSlotLink(i)
+            if itemLoot == nil == false then
+                local itemName, itemLink, itemRarity = GetItemInfo(itemLoot)
+                if itemRarity >= 3 == true then
+                    lootChain = lootChain .. itemLink .. '#'
+                end
+            end
+        end
+        lootChain = lootChain .. ']'
+        lootHistory[lootTableKey] = lootChain
+        LootHistory = lootHistory
+    end
 end
 -- end region
 
@@ -100,7 +146,7 @@ function EPIC:ExportAttunement()
         exportString = exportString .. "Karazhan#"
     end
 
-    if C_QuestLog.IsQuestFlaggedCompleted(13431) then
+    if C_QuestLog.IsQuestFlaggedCompleted(13432) then
         exportString = exportString .. "Serpentshrine Cavern#"
     end
 
